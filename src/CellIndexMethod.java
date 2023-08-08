@@ -8,20 +8,18 @@ import java.io.IOException;
 
 public class CellIndexMethod {
     double L; // Cantidad de celdas vertical y horizontalmente
-    double M;
-    int gridSize;
+    int M;
+    double cellSize;
     int numParticles;
     List<Particle> particles;
     List<Cell> grid;
 
     private double[] calculateCellSize(double L, double rc, double maxRadius) {
-        double epsilon = 1e-6;
-        double M = L;
         int i = 2;
-
+        double epsilon = 1e-6;
         while(true) {
-            M = L/i;
-            if ((L % i) < epsilon && M < L/(rc+maxRadius)) {
+            M = (int) (L/i);
+            if (L % i < epsilon && M < L/(rc+maxRadius)) {
                 break;
             }
             else {
@@ -41,23 +39,26 @@ public class CellIndexMethod {
             }
         }
 
-        double[] cellSize = calculateCellSize(L, rc, maxRadius);
-        this.M = cellSize[0];
-        this.gridSize = (int)cellSize[1];
+        double[] data = calculateCellSize(L, rc, maxRadius);
+        this.M = (int) data[0];
+        this.cellSize = data[1];
         this.particles = particles;
         this.numParticles = particles.size();
 
+        System.out.println("M: " + M);
+        System.out.println("cellSize: " + cellSize);
+
         // Inicializar la cuadrícula
         grid = new ArrayList<>();
-        for (int i = 0; i < gridSize * gridSize; i++) {
+        for (int i = 0; i < M * M; i++) {
             grid.add(new Cell());
         }
 
         // Colocar partículas en la cuadrícula
         for (Particle particle : particles) {
-            int cellX = (int) (particle.x / M);
-            int cellY = (int) (particle.y / M);
-            int cellIndex = cellY * gridSize + cellX;
+            int cellX = (int) Math.floor(particle.x / cellSize);
+            int cellY = (int) Math.floor(particle.y / cellSize);
+            int cellIndex = cellY * M + cellX;
             grid.get(cellIndex).addParticle(particle);
         }
     }
@@ -65,41 +66,32 @@ public class CellIndexMethod {
     public Map<Particle, List<Particle>> getNeighborParticles(double rc) {
         Map<Particle, List<Particle>> neighborsMap = new HashMap<>();
 
-        for (Particle particle : particles) {
-            int cellX = (int) (particle.x / M);
-            int cellY = (int) (particle.y / M);
+        for (int i = 0; i < grid.size(); i++) {
+            for (Particle particle : grid.get(i).particles) {
+                for (Particle particle2 : grid.get(i).particles) {
+                    if (particle.id != particle2.id) {
+                        neighborsMap.computeIfAbsent(particle, k -> new ArrayList<>()).add(particle2);
+                    }
+                }
+            }
+            int[] offsets = {i - M, i - M + 1, i + 1, i + M + 1 };
+            for (Particle particle : grid.get(i).particles) {
+                for (int offset : offsets) {
+                    if (offset >= 0 && offset < grid.size()) {
+                        for (Particle neighborParticle : grid.get(offset).particles) {
+                            double dx = particle.x - neighborParticle.x;
+                            double dy = particle.y - neighborParticle.y;
+                            double distance = Math.sqrt(dx * dx + dy * dy);
+                            double combinedRadius = Math.max(particle.radius, rc) + neighborParticle.radius;
 
-            int[][] offsets = {
-                    { -1, 0 }, // (i-1, j)
-                    { -1, 1 }, // (i-1, j+1)
-                    { 0, 1 },  // (i, j+1)
-                    { 1, 1 }   // (i+1, j+1)
-            };
-
-            // Calcular celdas vecinas
-            for (int[] offset : offsets) {
-                int neighborX = cellX + offset[0];
-                int neighborY = cellY + offset[1];
-
-                // Verificar límites de la cuadrícula
-                if (neighborX >= 0 && neighborX < gridSize && neighborY >= 0 && neighborY < gridSize) {
-
-                    int neighborCellIndex = neighborY * gridSize + neighborX;
-                    Cell neighborCell = grid.get(neighborCellIndex);
-
-                    // Calcular distancias con partículas en la celda vecina
-                    for (Particle neighborParticle : neighborCell.particles) {
-                        double dx = particle.x - neighborParticle.x;
-                        double dy = particle.y - neighborParticle.y;
-                        double distance = Math.sqrt(dx * dx + dy * dy);
-                        double combinedRadius = Math.max(particle.radius, rc) + neighborParticle.radius;
-
-                        // Verificar si están a una distancia rc o menos
-                        if (distance - combinedRadius <= rc) {
-                            neighborsMap.computeIfAbsent(particle, k -> new ArrayList<>()).add(neighborParticle);
-                            neighborsMap.computeIfAbsent(neighborParticle, k -> new ArrayList<>()).add(particle);
+                            // Verificar si están a una distancia rc o menos
+                            if (distance - combinedRadius <= rc) {
+                                neighborsMap.computeIfAbsent(particle, k -> new ArrayList<>()).add(neighborParticle);
+                                neighborsMap.computeIfAbsent(neighborParticle, k -> new ArrayList<>()).add(particle);
+                            }
                         }
                     }
+
                 }
             }
         }
@@ -108,6 +100,7 @@ public class CellIndexMethod {
 
         return neighborsMap;
     }
+
     public static void main(String[] args) {
         int N = 0;
         double L = 0;
