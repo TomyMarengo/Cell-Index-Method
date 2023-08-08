@@ -62,7 +62,7 @@ public class ParticleVisualization extends JPanel {
     private void drawRC(Graphics g) {
         g.setColor(Color.RED);
         for (Particle particle : particles) {
-            int radius = (int) (rc);
+            int radius = (int) (particle.radius + rc);
             int x = (int) (particle.x - radius);
             int y = (int) (particle.y - radius);
             g.drawOval(x, y, radius * 2, radius * 2);

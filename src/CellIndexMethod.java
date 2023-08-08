@@ -82,7 +82,7 @@ public class CellIndexMethod {
                             double dx = particle.x - neighborParticle.x;
                             double dy = particle.y - neighborParticle.y;
                             double distance = Math.sqrt(dx * dx + dy * dy);
-                            double combinedRadius = Math.max(particle.radius, rc) + neighborParticle.radius;
+                            double combinedRadius = particle.radius + neighborParticle.radius;
 
                             // Verificar si están a una distancia rc o menos
                             if (distance - combinedRadius <= rc) {
