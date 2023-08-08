@@ -14,14 +14,14 @@ public class CellIndexMethod {
     List<Particle> particles;
     List<Cell> grid;
 
-    private double[] calculateCellSize(double L, double rc) {
+    private double[] calculateCellSize(double L, double rc, double maxRadius) {
         double epsilon = 1e-6;
         double M = L;
         int i = 2;
 
         while(true) {
             M = L/i;
-            if ((L % i) < epsilon && M < L/rc) {
+            if ((L % i) < epsilon && M < L/(rc+maxRadius)) {
                 break;
             }
             else {
@@ -34,7 +34,14 @@ public class CellIndexMethod {
 
     public CellIndexMethod(double L, double rc, List<Particle> particles) {
         this.L = L;
-        double[] cellSize = calculateCellSize(L, rc);
+        double maxRadius = 0.0;
+        for (Particle particle : particles) {
+            if (particle.radius > maxRadius) {
+                maxRadius = particle.radius;
+            }
+        }
+
+        double[] cellSize = calculateCellSize(L, rc, maxRadius);
         this.M = cellSize[0];
         this.gridSize = (int)cellSize[1];
         this.particles = particles;
