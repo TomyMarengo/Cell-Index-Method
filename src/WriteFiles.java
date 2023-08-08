@@ -26,6 +26,8 @@ public class WriteFiles {
         writer.close();
     }
 
+
+    // Change numbers in this method to have other inputs
     public static void main(String[] args) {
         int N = 30; // Número total de partículas
         double L = 1000.0; // Longitud del lado del área de simulación

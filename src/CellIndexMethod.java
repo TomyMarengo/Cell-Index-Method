@@ -7,9 +7,10 @@ import java.io.FileReader;
 import java.io.IOException;
 
 public class CellIndexMethod {
-    double L; // Cantidad de celdas vertical y horizontalmente
-    int M;
-    double cellSize;
+    double L; // Grid is L in height and width
+    int M; // Grid is MxM
+    double rc; // Distance from the circumference particle to be considered a neighbor
+    double cellSize; // Grid is M*cellSize = L in height and width, cellSize is divisor of L
     int numParticles;
     List<Particle> particles;
     List<Cell> grid;
@@ -32,6 +33,10 @@ public class CellIndexMethod {
 
     public CellIndexMethod(double L, double rc, List<Particle> particles) {
         this.L = L;
+        this.rc = rc;
+        this.particles = particles;
+        this.numParticles = particles.size();
+
         double maxRadius = 0.0;
         for (Particle particle : particles) {
             if (particle.radius > maxRadius) {
@@ -39,22 +44,20 @@ public class CellIndexMethod {
             }
         }
 
+        //Calculate best M option
         double[] data = calculateCellSize(L, rc, maxRadius);
         this.M = (int) data[0];
         this.cellSize = data[1];
-        this.particles = particles;
-        this.numParticles = particles.size();
 
-        System.out.println("M: " + M);
-        System.out.println("cellSize: " + cellSize);
 
-        // Inicializar la cuadrícula
+
+        // Initialize grid and cells
         grid = new ArrayList<>();
         for (int i = 0; i < M * M; i++) {
             grid.add(new Cell());
         }
 
-        // Colocar partículas en la cuadrícula
+        // Places particles in each cell
         for (Particle particle : particles) {
             int cellX = (int) Math.floor(particle.x / cellSize);
             int cellY = (int) Math.floor(particle.y / cellSize);
@@ -63,10 +66,12 @@ public class CellIndexMethod {
         }
     }
 
-    public Map<Particle, List<Particle>> getNeighborParticles(double rc) {
+    public Map<Particle, List<Particle>> getNeighborParticles() {
         Map<Particle, List<Particle>> neighborsMap = new HashMap<>();
 
         for (int i = 0; i < grid.size(); i++) {
+
+            // Add particles within same cell as neighbors
             for (Particle particle : grid.get(i).particles) {
                 for (Particle particle2 : grid.get(i).particles) {
                     if (particle.id != particle2.id) {
@@ -74,7 +79,11 @@ public class CellIndexMethod {
                     }
                 }
             }
+
+            // Neighbors cells to be calculated: top, top right, right, bottom right
             int[] offsets = {i - M, i - M + 1, i + 1, i + M + 1 };
+
+            // Calculate distance between neighbor particles in neighbor cells
             for (Particle particle : grid.get(i).particles) {
                 for (int offset : offsets) {
                     if (offset >= 0 && offset < grid.size()) {
@@ -84,7 +93,7 @@ public class CellIndexMethod {
                             double distance = Math.sqrt(dx * dx + dy * dy);
                             double combinedRadius = particle.radius + neighborParticle.radius;
 
-                            // Verificar si están a una distancia rc o menos
+                            // Distance is calculated and then subtracted the combinedRadius
                             if (distance - combinedRadius <= rc) {
                                 neighborsMap.computeIfAbsent(particle, k -> new ArrayList<>()).add(neighborParticle);
                                 neighborsMap.computeIfAbsent(neighborParticle, k -> new ArrayList<>()).add(particle);
@@ -96,6 +105,7 @@ public class CellIndexMethod {
             }
         }
 
+        // Visualization class, when instantiated, draw the grid (not more needed to be done)
         ParticleVisualization visualization = new ParticleVisualization(L, M, particles, rc);
 
         return neighborsMap;
@@ -109,6 +119,7 @@ public class CellIndexMethod {
         List<List<Particle>> particlesByTimestep = new ArrayList<>();
 
         try {
+            // Read static file
             BufferedReader staticReader = new BufferedReader(new FileReader("static.txt"));
             N = Integer.parseInt(staticReader.readLine());
             L = Double.parseDouble(staticReader.readLine());
@@ -120,9 +131,10 @@ public class CellIndexMethod {
             }
             staticReader.close();
 
+            // Read dynamic file
             BufferedReader dynamicReader = new BufferedReader(new FileReader("dynamic.txt"));
             String line;
-            int timestepCount = 0;
+            int timestampCount = 0;
 
             while ((line = dynamicReader.readLine()) != null) {
                 double time = Double.parseDouble(line);
@@ -137,23 +149,19 @@ public class CellIndexMethod {
                 }
 
                 particlesByTimestep.add(particles);
-                timestepCount++;
+                timestampCount++;
             }
             dynamicReader.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        // Aquí ya tienes todos los datos necesarios para trabajar con las partículas
-        // Por ejemplo, para acceder a las partículas en el tiempo t=0:
-        List<Particle> particlesAtTimestep0 = particlesByTimestep.get(0);
+        // Call CellIndexMethod with first Timestamp
+        List<Particle> particlesAtTimestamp0 = particlesByTimestep.get(0);
+        CellIndexMethod cim = new CellIndexMethod(L, rc, particlesAtTimestamp0);
+        Map<Particle, List<Particle>> neighborParticlesMap = cim.getNeighborParticles();
 
-        System.out.println(particlesAtTimestep0);
-
-        CellIndexMethod cim = new CellIndexMethod(L, rc, particlesAtTimestep0);
-
-        Map<Particle, List<Particle>> neighborParticlesMap = cim.getNeighborParticles(rc);
-
+        // Print neighbors
         System.out.println("Partículas vecinas:");
         for (Particle particle : neighborParticlesMap.keySet()) {
             List<Particle> neighbors = neighborParticlesMap.get(particle);
