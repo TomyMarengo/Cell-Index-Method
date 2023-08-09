@@ -16,6 +16,7 @@ public class CellIndexMethod {
     Set<Particle> particles;
     List<Cell> grid;
     Map<Particle, Set<Particle>> neighborMap;
+    Map<Particle, Particle> mirrorMap;
 
     private double[] calculateCellSize(double L, double rc, Set<Particle> particles) {
         double maxRadius = 0.0;
@@ -74,6 +75,8 @@ public class CellIndexMethod {
 
         // Mirror cells if periodicOutline is true
         if (periodicOutline) {
+            mirrorMap = new HashMap<>();
+
             //Top
             for (int i = 0; i < M; i++) {
                 grid.add(i, new Cell());
@@ -83,6 +86,7 @@ public class CellIndexMethod {
                     Particle newParticle = new Particle(particle.id+"E", newX, newY, particle.radius);
                     grid.get(i).particles.add(newParticle);
                     this.particles.add(newParticle);
+                    mirrorMap.put(newParticle, particle);
                 }
             }
 
@@ -94,17 +98,19 @@ public class CellIndexMethod {
                 Particle newParticle = new Particle(particle.id+"E", newX, newY, particle.radius);
                 grid.get(M).particles.add(newParticle);
                 this.particles.add(newParticle);
+                mirrorMap.put(newParticle, particle);
             }
 
             //Right
             for (int i = M+1; i < (M+1) * (M+1); i+=M+1) {
-                grid.add(i+3, new Cell());
+                grid.add(i+M, new Cell());
                 for (Particle particle : grid.get(i).particles) {
                     double newX = L + particle.x;
                     double newY = particle.y;
                     Particle newParticle = new Particle(particle.id+"E", newX, newY, particle.radius);
-                    grid.get(i+3).particles.add(newParticle);
+                    grid.get(i+M).particles.add(newParticle);
                     this.particles.add(newParticle);
+                    mirrorMap.put(newParticle, particle);
                 }
             }
 
@@ -121,6 +127,7 @@ public class CellIndexMethod {
                 Particle newParticle = new Particle(particle.id+"E", newX, newY, particle.radius);
                 grid.get(grid.size()-1).particles.add(newParticle);
                 this.particles.add(newParticle);
+                mirrorMap.put(newParticle, particle);
             }
         }
 
