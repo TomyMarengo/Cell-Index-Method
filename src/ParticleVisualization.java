@@ -43,19 +43,19 @@ public class ParticleVisualization extends JPanel {
     }
 
     private void drawParticles(Graphics g) {
+        g.setColor(Color.PINK);
+        for (Particle particle : particles) {
+            int x = (int) (particle.x - particle.radius);
+            int y = (int) (particle.y - particle.radius);
+            g.fillOval(x, y, (int) particle.radius * 2, (int) particle.radius * 2);
+        }
+
         g.setColor(Color.BLACK);
         for (Particle particle : particles) {
-            int radius = (int) (particle.radius);
-            int x = (int) (particle.x - radius);
-            int y = (int) (particle.y - radius);
-            g.fillOval(x, y, radius * 2, radius * 2);
-            // Calcular coordenadas x e y para dibujar el ID
-            int idX = (int) (particle.x + radius);
-            int idY = (int) (particle.y + radius);
-
-            // Dibujar el ID en la posición calculada
-            g.setColor(Color.BLACK);
+            int idX = (int) (particle.x + particle.radius);
+            int idY = (int) (particle.y - particle.radius);
             g.drawString(String.valueOf(particle.id), idX, idY);
+
         }
     }
 
