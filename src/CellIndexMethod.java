@@ -335,6 +335,8 @@ public class CellIndexMethod {
         // Write output.txt
         cim.writeOutputToFile(elapsedTime, "Normal");
 
+        cim.visualize();
+
         // Call CellIndexMethodNaive with first Timestamp
         startTime = System.currentTimeMillis();
         cim.calculateNeighborParticlesNaive();
@@ -344,6 +346,6 @@ public class CellIndexMethod {
         // Write output.txt
         cim.appendOutputToFile(elapsedTime, "Naive");
 
-        cim.visualize();
+
     }
 }
