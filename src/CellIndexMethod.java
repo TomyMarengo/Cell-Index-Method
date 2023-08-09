@@ -162,17 +162,21 @@ public class CellIndexMethod {
                             double combinedRadius = particle.radius + neighborParticle.radius;
                             // Distance is calculated and then subtracted the combinedRadius
                             if (distance - combinedRadius <= rc) {
-                                if(!particle.id.contains("E")) {
+                                if(!particle.id.contains("E") && !neighborParticle.id.contains("E")) {
                                     neighborMap.computeIfAbsent(particle, k -> new TreeSet<>()).add(neighborParticle);
-                                }
-                                else if(!neighborParticle.id.contains("E")){
-                                    neighborMap.computeIfAbsent(mirrorMap.get(particle), k -> new TreeSet<>()).add(neighborParticle);
-                                }
-                                if(!neighborParticle.id.contains("E")) {
                                     neighborMap.computeIfAbsent(neighborParticle, k -> new TreeSet<>()).add(particle);
                                 }
-                                else {
+                                else if(!particle.id.contains("E") && neighborParticle.id.contains("E")) {
+                                    neighborMap.computeIfAbsent(particle, k -> new TreeSet<>()).add(mirrorMap.get(neighborParticle));
                                     neighborMap.computeIfAbsent(mirrorMap.get(neighborParticle), k -> new TreeSet<>()).add(particle);
+                                }
+                                else if(particle.id.contains("E") && !neighborParticle.id.contains("E")) {
+                                    neighborMap.computeIfAbsent(mirrorMap.get(particle), k -> new TreeSet<>()).add(neighborParticle);
+                                    neighborMap.computeIfAbsent(neighborParticle, k -> new TreeSet<>()).add(mirrorMap.get(particle));
+                                }
+                                else {
+                                    neighborMap.computeIfAbsent(mirrorMap.get(particle), k -> new TreeSet<>()).add(mirrorMap.get(neighborParticle));
+                                    neighborMap.computeIfAbsent(mirrorMap.get(neighborParticle), k -> new TreeSet<>()).add(mirrorMap.get(particle));
                                 }
                             }
                         }
