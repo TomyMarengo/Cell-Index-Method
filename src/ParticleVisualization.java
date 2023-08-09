@@ -5,18 +5,32 @@ import java.util.List;
 public class ParticleVisualization extends JPanel {
     private double L;
     private double M;
-    private List<Particle> particles;
+    private List<Cell> grid;
     private double rc;
+    private boolean periodicOutline;
+    private JFrame frame;
+    private int width, height;
 
-    public ParticleVisualization(double L, double M, List<Particle> particles, double rc) {
+    public ParticleVisualization(List<Cell> grid, double L, double M, double rc, boolean periodicOutline) {
         this.L = L;
         this.M = M;
         this.rc = rc;
-        this.particles = particles;
+        this.grid = grid;
+        this.periodicOutline = periodicOutline;
 
-        JFrame frame = new JFrame();
+        this.frame = new JFrame();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize((int) L, (int) L);
+
+
+        if(periodicOutline) {
+            this.width = (int)(L+L/M);
+            this.height = (int)(L+2*(L/M));
+        }
+        else {
+            this.width = (int) L;
+            this.height = (int) L;
+        }
+        frame.setSize(width, height);
         frame.setLocationRelativeTo(null);
         frame.add(this);
         frame.setVisible(true);
@@ -33,39 +47,68 @@ public class ParticleVisualization extends JPanel {
     private void drawGrid(Graphics g) {
         int cellSize = (int) (L / M);
         g.setColor(Color.LIGHT_GRAY);
-        for (int i = 0; i < M; i++) {
-            for (int j = 0; j < M; j++) {
-                int x = i * cellSize;
-                int y = j * cellSize;
-                g.drawRect(x, y, cellSize, cellSize);
+
+        for (int i = 0; i < width; i+=cellSize) {
+            for (int j = 0; j < height; j+=cellSize) {
+                g.drawRect(i, j, cellSize, cellSize);
+            }
+        }
+
+        if(periodicOutline) {
+            g.setColor(Color.BLACK);
+            for (int i = 0; i < width; i+=cellSize) {
+                g.drawRect(i, 0, cellSize, cellSize);
+            }
+            for (int i = 0; i < height; i+=cellSize) {
+                g.drawRect(width - cellSize, i, cellSize, cellSize);
+            }
+            for (int i = 0; i < width; i+=cellSize) {
+                g.drawRect(i, height - cellSize, cellSize, cellSize);
             }
         }
     }
 
     private void drawParticles(Graphics g) {
         g.setColor(Color.PINK);
-        for (Particle particle : particles) {
-            int x = (int) (particle.x - particle.radius);
-            int y = (int) (particle.y - particle.radius);
-            g.fillOval(x, y, (int) particle.radius * 2, (int) particle.radius * 2);
+
+        int offsetY = 0;
+        if (periodicOutline) {
+            offsetY += (int) (L / M);
+        }
+
+        for (Cell cell : grid) {
+            for (Particle particle : cell.particles) {
+                int x = (int) (particle.x - particle.radius);
+                int y = (int) (particle.y - particle.radius);
+                g.fillOval(x, y + offsetY, (int) particle.radius * 2, (int) particle.radius * 2);
+            }
         }
 
         g.setColor(Color.BLACK);
-        for (Particle particle : particles) {
-            int idX = (int) (particle.x + particle.radius);
-            int idY = (int) (particle.y - particle.radius);
-            g.drawString(String.valueOf(particle.id), idX, idY);
-
+        for (Cell cell : grid) {
+            for (Particle particle : cell.particles) {
+                int idX = (int) (particle.x + particle.radius);
+                int idY = (int) (particle.y - particle.radius);
+                g.drawString(String.valueOf(particle.id), idX, idY + offsetY);
+            }
         }
     }
 
     private void drawRC(Graphics g) {
         g.setColor(Color.RED);
-        for (Particle particle : particles) {
-            int radius = (int) (particle.radius + rc);
-            int x = (int) (particle.x - radius);
-            int y = (int) (particle.y - radius);
-            g.drawOval(x, y, radius * 2, radius * 2);
+
+        int offsetY = 0;
+        if (periodicOutline) {
+            offsetY += (int) (L / M);
+        }
+
+        for (Cell cell : grid) {
+            for (Particle particle : cell.particles) {
+                int radius = (int) (particle.radius + rc);
+                int x = (int) (particle.x - radius);
+                int y = (int) (particle.y - radius);
+                g.drawOval(x, y + offsetY, radius * 2, radius * 2);
+            }
         }
     }
 }

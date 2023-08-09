@@ -31,7 +31,7 @@ public class CellIndexMethod {
         return new double[]{M, i};
     }
 
-    public CellIndexMethod(double L, double rc, List<Particle> particles) {
+    public CellIndexMethod(double L, double rc, List<Particle> particles, boolean periodicOutline) {
         this.L = L;
         this.rc = rc;
         this.particles = particles;
@@ -49,10 +49,8 @@ public class CellIndexMethod {
         this.M = (int) data[0];
         this.cellSize = data[1];
 
-
-
-        // Initialize grid and cells
         grid = new ArrayList<>();
+        // Initialize grid and cells
         for (int i = 0; i < M * M; i++) {
             grid.add(new Cell());
         }
@@ -64,6 +62,60 @@ public class CellIndexMethod {
             int cellIndex = cellY * M + cellX;
             grid.get(cellIndex).addParticle(particle);
         }
+
+        if (periodicOutline) {
+            //Top
+            for (int i = 0; i < M; i++) {
+                grid.add(i, new Cell());
+                for (Particle particle : grid.get(M*M-M+1+i*2).particles) {
+                    double newX = particle.x;
+                    double newY = 0 - (L - particle.y);
+                    Particle newParticle = new Particle(particle.id, newX, newY, particle.radius);
+                    grid.get(i).particles.add(newParticle);
+                    particles.add(newParticle);
+                }
+            }
+
+            //Top Right
+            grid.add(M, new Cell());
+            for (Particle particle : grid.get(M*M+1).particles) {
+                double newX = L + particle.x;
+                double newY = 0 - (L - particle.y);
+                Particle newParticle = new Particle(particle.id, newX, newY, particle.radius);
+                grid.get(M).particles.add(newParticle);
+                particles.add(newParticle);
+            }
+
+            //Right
+            for (int i = M+1; i < (M+1) * (M+1); i+=M+1) {
+                grid.add(i+3, new Cell());
+                for (Particle particle : grid.get(i).particles) {
+                    double newX = L + particle.x;
+                    double newY = particle.y;
+                    Particle newParticle = new Particle(particle.id, newX, newY, particle.radius);
+                    grid.get(i+3).particles.add(newParticle);
+                    particles.add(newParticle);
+                }
+            }
+
+            //Bottom
+            for (int i = 0; i < M; i++) {
+                grid.add(new Cell());
+            }
+
+            //Bottom Right
+            grid.add(new Cell());
+            for (Particle particle : grid.get(M+1).particles) {
+                double newX = L + particle.x;
+                double newY = L + particle.y;
+                Particle newParticle = new Particle(particle.id, newX, newY, particle.radius);
+                grid.get(grid.size()-1).particles.add(newParticle);
+                particles.add(newParticle);
+            }
+        }
+
+        // Visualization class, when instantiated, draw the grid (not more needed to be done)
+        ParticleVisualization visualization = new ParticleVisualization(grid, L, M, rc, periodicOutline);
     }
 
     public Map<Particle, List<Particle>> getNeighborParticles() {
@@ -104,10 +156,6 @@ public class CellIndexMethod {
                 }
             }
         }
-
-        // Visualization class, when instantiated, draw the grid (not more needed to be done)
-        ParticleVisualization visualization = new ParticleVisualization(L, M, particles, rc);
-
         return neighborsMap;
     }
 
@@ -158,7 +206,7 @@ public class CellIndexMethod {
 
         // Call CellIndexMethod with first Timestamp
         List<Particle> particlesAtTimestamp0 = particlesByTimestep.get(0);
-        CellIndexMethod cim = new CellIndexMethod(L, rc, particlesAtTimestamp0);
+        CellIndexMethod cim = new CellIndexMethod(L, rc, particlesAtTimestamp0, true);
         Map<Particle, List<Particle>> neighborParticlesMap = cim.getNeighborParticles();
 
         // Print neighbors

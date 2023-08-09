@@ -5,9 +5,9 @@ import java.io.IOException;
 public class WriteFiles {
 
     private static final int N = 30; // Total number of particles
-    private static final double L = 1000.0; // Width and height of the grid
-    private static final double rc = 20; // Distance to be considered neighbors
-    private static final double MAX_RADIUS = 30; // Maximum particle radius
+    private static final double L = 700.0; // Width and height of the grid
+    private static final double rc = 70; // Distance to be considered neighbors
+    private static final double MAX_RADIUS = 40; // Maximum particle radius
     private static final  int numTimestamps = 5; // Timestamps quantity
 
 
