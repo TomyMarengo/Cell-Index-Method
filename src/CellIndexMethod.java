@@ -162,22 +162,7 @@ public class CellIndexMethod {
                             double combinedRadius = particle.radius + neighborParticle.radius;
                             // Distance is calculated and then subtracted the combinedRadius
                             if (distance - combinedRadius <= rc) {
-                                if(!particle.id.contains("E") && !neighborParticle.id.contains("E")) {
-                                    neighborMap.computeIfAbsent(particle, k -> new TreeSet<>()).add(neighborParticle);
-                                    neighborMap.computeIfAbsent(neighborParticle, k -> new TreeSet<>()).add(particle);
-                                }
-                                else if(!particle.id.contains("E") && neighborParticle.id.contains("E")) {
-                                    neighborMap.computeIfAbsent(particle, k -> new TreeSet<>()).add(mirrorMap.get(neighborParticle));
-                                    neighborMap.computeIfAbsent(mirrorMap.get(neighborParticle), k -> new TreeSet<>()).add(particle);
-                                }
-                                else if(particle.id.contains("E") && !neighborParticle.id.contains("E")) {
-                                    neighborMap.computeIfAbsent(mirrorMap.get(particle), k -> new TreeSet<>()).add(neighborParticle);
-                                    neighborMap.computeIfAbsent(neighborParticle, k -> new TreeSet<>()).add(mirrorMap.get(particle));
-                                }
-                                else {
-                                    neighborMap.computeIfAbsent(mirrorMap.get(particle), k -> new TreeSet<>()).add(mirrorMap.get(neighborParticle));
-                                    neighborMap.computeIfAbsent(mirrorMap.get(neighborParticle), k -> new TreeSet<>()).add(mirrorMap.get(particle));
-                                }
+                                addToNeighborMap(particle, neighborParticle);
                             }
                         }
                     }
@@ -190,6 +175,25 @@ public class CellIndexMethod {
         ParticleVisualization visualization = new ParticleVisualization(grid, neighborMap, L, M, rc, periodicOutline);
     }
 
+    private void addToNeighborMap(Particle particle, Particle neighborParticle) {
+        if(!particle.id.contains("E") && !neighborParticle.id.contains("E")) {
+            neighborMap.computeIfAbsent(particle, k -> new TreeSet<>()).add(neighborParticle);
+            neighborMap.computeIfAbsent(neighborParticle, k -> new TreeSet<>()).add(particle);
+        }
+        else if(!particle.id.contains("E") && neighborParticle.id.contains("E")) {
+            neighborMap.computeIfAbsent(particle, k -> new TreeSet<>()).add(mirrorMap.get(neighborParticle));
+            neighborMap.computeIfAbsent(mirrorMap.get(neighborParticle), k -> new TreeSet<>()).add(particle);
+        }
+        else if(particle.id.contains("E") && !neighborParticle.id.contains("E")) {
+            neighborMap.computeIfAbsent(mirrorMap.get(particle), k -> new TreeSet<>()).add(neighborParticle);
+            neighborMap.computeIfAbsent(neighborParticle, k -> new TreeSet<>()).add(mirrorMap.get(particle));
+        }
+        else {
+            neighborMap.computeIfAbsent(mirrorMap.get(particle), k -> new TreeSet<>()).add(mirrorMap.get(neighborParticle));
+            neighborMap.computeIfAbsent(mirrorMap.get(neighborParticle), k -> new TreeSet<>()).add(mirrorMap.get(particle));
+        }
+    }
+
     public void calculateNeighborParticlesNaive() {
         neighborMap = new HashMap<>();
 
@@ -197,7 +201,7 @@ public class CellIndexMethod {
         for (Particle particle : particles) {
             if(!particle.id.contains("E")) {
                 for (Particle neighborParticle : particles) {
-                    if (particle.id != neighborParticle.id) {
+                    if (!particle.id.equals(neighborParticle.id)) {
                         double dx = particle.x - neighborParticle.x;
                         double dy = particle.y - neighborParticle.y;
                         double distance = Math.sqrt(dx * dx + dy * dy);
@@ -205,7 +209,7 @@ public class CellIndexMethod {
 
                         // Distance is calculated and then subtracted the combinedRadius
                         if (distance - combinedRadius <= rc) {
-                            neighborMap.computeIfAbsent(particle, k -> new TreeSet<>()).add(neighborParticle);
+                            addToNeighborMap(particle, neighborParticle);
                         }
                     }
                 }
