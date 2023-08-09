@@ -163,7 +163,6 @@ public class CellIndexMethod {
                             double dy = particle.y - neighborParticle.y;
                             double distance = Math.sqrt(dx * dx + dy * dy);
                             double combinedRadius = particle.radius + neighborParticle.radius;
-                            System.out.println("Probando " + particle.id + "(" + i + ")" + " Con " + neighborParticle.id + "(" + offset + ")" +"  Distancia: " + (distance - combinedRadius));
                             // Distance is calculated and then subtracted the combinedRadius
                             if (distance - combinedRadius <= rc) {
                                 if(!particle.id.contains("E")) {
@@ -231,7 +230,7 @@ public class CellIndexMethod {
                 }
                 writer.write("\n");
             }
-            System.out.println("Resultados escritos en output.txt");
+            System.out.println("Resultados del método " + title + " escritos en output.txt");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -262,7 +261,7 @@ public class CellIndexMethod {
             }
 
             writer.newLine(); // Agregar una línea en blanco entre los resultados
-            System.out.println("Resultados agregados en output.txt");
+            System.out.println("Resultados del método " + title + " agregados en output.txt");
 
         } catch (IOException e) {
             e.printStackTrace();
