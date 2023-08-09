@@ -2,12 +2,12 @@ import java.text.DecimalFormat;
 import java.util.Objects;
 
 public class Particle implements Comparable<Particle> {
-    int id;
+    String id;
     double x;
     double y;
     double radius;
 
-    public Particle(int id, double x, double y, double radius) {
+    public Particle(String id, double x, double y, double radius) {
         this.id = id;
         this.x = x;
         this.y = y;
@@ -24,13 +24,20 @@ public class Particle implements Comparable<Particle> {
 
     @Override
     public int compareTo(Particle otherParticle) {
-        return Integer.compare(this.id, otherParticle.id);
+        int idComparison = this.id.compareTo(otherParticle.id);
+        if (idComparison != 0) {
+            return idComparison;
+        }
+        int xComparison = Double.compare(this.x, otherParticle.x);
+        if (xComparison != 0) {
+            return xComparison;
+        }
+        return Double.compare(this.y, otherParticle.y);
     }
-
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(id, x, y);
     }
 
     @Override
@@ -38,6 +45,8 @@ public class Particle implements Comparable<Particle> {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;
         Particle particle = (Particle) obj;
-        return id == particle.id;
+        return Objects.equals(id, particle.id) &&
+                Objects.equals(x, particle.x) &&
+                Objects.equals(y, particle.y);
     }
 }
