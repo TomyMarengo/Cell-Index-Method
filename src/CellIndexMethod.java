@@ -170,9 +170,6 @@ public class CellIndexMethod {
                 }
             }
         }
-
-        // Visualization class, when instantiated, draw the grid (not more needed to be done)
-        ParticleVisualization visualization = new ParticleVisualization(grid, neighborMap, L, M, rc, periodicOutline);
     }
 
     private void addToNeighborMap(Particle particle, Particle neighborParticle) {
@@ -276,6 +273,11 @@ public class CellIndexMethod {
         }
     }
 
+    public void visualize() {
+        // Visualization class, when instantiated, draw the grid (not more needed to be done)
+        ParticleVisualization visualization = new ParticleVisualization(grid, neighborMap, L, M, rc, periodicOutline);
+    }
+
     public static void main(String[] args) {
         int N = 0;
         double L = 0;
@@ -341,5 +343,7 @@ public class CellIndexMethod {
 
         // Write output.txt
         cim.appendOutputToFile(elapsedTime, "Naive");
+
+        cim.visualize();
     }
 }
