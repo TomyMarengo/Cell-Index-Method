@@ -18,17 +18,18 @@ public class CellIndexMethod {
     Map<Particle, Set<Particle>> neighborMap;
 
     private double[] calculateCellSize(double L, double rc, Set<Particle> particles) {
-        double maxRadius = 0.0;
+        double minRadius = particles.stream().findFirst().get().radius;
         for (Particle particle : particles) {
-            if (particle.radius > maxRadius) {
-                maxRadius = particle.radius;
+            if (particle.radius < minRadius) {
+                minRadius = particle.radius;
             }
         }
+        
         int i = 2;
         double epsilon = 1e-6;
         while(true) {
             M = (int) (L/i);
-            if (L % i < epsilon && M < L/(rc+maxRadius)) {
+            if (L % i < epsilon && M < L/(rc+minRadius*2)) {
                 break;
             }
             else {
