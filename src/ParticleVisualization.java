@@ -21,7 +21,7 @@ public class ParticleVisualization extends JPanel {
         this.frame = new JFrame();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-
+        // Enlarge grid if it has mirrored cells
         if(periodicOutline) {
             this.width = (int)(L+L/M);
             this.height = (int)(L+2*(L/M));
@@ -30,6 +30,7 @@ public class ParticleVisualization extends JPanel {
             this.width = (int) L;
             this.height = (int) L;
         }
+
         frame.setSize(width, height);
         frame.setLocationRelativeTo(null);
         frame.add(this);
@@ -54,6 +55,7 @@ public class ParticleVisualization extends JPanel {
             }
         }
 
+        // Draws mirrored cells in other color
         if(periodicOutline) {
             g.setColor(Color.BLACK);
             for (int i = 0; i < width; i+=cellSize) {
@@ -71,11 +73,15 @@ public class ParticleVisualization extends JPanel {
     private void drawParticles(Graphics g) {
         g.setColor(Color.PINK);
 
+
+        // Adds a positive offset to Y coordinate to particles because we need to draw one row in top
+        // So the particles are now one cellSize below
         int offsetY = 0;
         if (periodicOutline) {
             offsetY += (int) (L / M);
         }
 
+        // Draw circle particles
         for (Cell cell : grid) {
             for (Particle particle : cell.particles) {
                 int x = (int) (particle.x - particle.radius);
@@ -84,6 +90,7 @@ public class ParticleVisualization extends JPanel {
             }
         }
 
+        // Draw their ids
         g.setColor(Color.BLACK);
         for (Cell cell : grid) {
             for (Particle particle : cell.particles) {
