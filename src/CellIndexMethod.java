@@ -1,11 +1,10 @@
-import java.io.FileWriter;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.util.TreeSet;
+import java.util.Set;
 
 public class CellIndexMethod {
     double L; // Grid is L in height and width
@@ -14,11 +13,11 @@ public class CellIndexMethod {
     double rc; // Distance from the circumference particle to be considered a neighbor
     double cellSize; // Grid is M*cellSize = L in height and width, cellSize is divisor of L
     int numParticles;
-    List<Particle> particles;
+    Set<Particle> particles;
     List<Cell> grid;
-    Map<Particle, List<Particle>> neighborMap;
+    Map<Particle, Set<Particle>> neighborMap;
 
-    private double[] calculateCellSize(double L, double rc, List<Particle> particles) {
+    private double[] calculateCellSize(double L, double rc, Set<Particle> particles) {
         double maxRadius = 0.0;
         for (Particle particle : particles) {
             if (particle.radius > maxRadius) {
@@ -40,7 +39,7 @@ public class CellIndexMethod {
         return new double[]{M, i};
     }
 
-    public CellIndexMethod(double L, double rc, List<Particle> particles, boolean periodicOutline) {
+    public CellIndexMethod(double L, double rc, Set<Particle> particles, boolean periodicOutline) {
         this.L = L;
         this.N = particles.size();
         this.rc = rc;
@@ -130,7 +129,7 @@ public class CellIndexMethod {
             for (Particle particle : grid.get(i).particles) {
                 for (Particle particle2 : grid.get(i).particles) {
                     if (particle.id != particle2.id) {
-                        neighborMap.computeIfAbsent(particle, k -> new ArrayList<>()).add(particle2);
+                        neighborMap.computeIfAbsent(particle, k -> new TreeSet<>()).add(particle2);
                     }
                 }
             }
@@ -150,8 +149,8 @@ public class CellIndexMethod {
 
                             // Distance is calculated and then subtracted the combinedRadius
                             if (distance - combinedRadius <= rc) {
-                                neighborMap.computeIfAbsent(particle, k -> new ArrayList<>()).add(neighborParticle);
-                                neighborMap.computeIfAbsent(neighborParticle, k -> new ArrayList<>()).add(particle);
+                                neighborMap.computeIfAbsent(particle, k -> new TreeSet<>()).add(neighborParticle);
+                                neighborMap.computeIfAbsent(neighborParticle, k -> new TreeSet<>()).add(particle);
                             }
                         }
                     }
@@ -161,29 +160,85 @@ public class CellIndexMethod {
         }
     }
 
-    public void writeOutputToFile(long elapsedTime) {
+    public void calculateNeighborParticlesNaive() {
+        neighborMap = new HashMap<>();
+
+        for (int i = 0; i < grid.size(); i++) {
+            // Calculate distance between neighbor particles in neighbor cells
+            for (Particle particle : grid.get(i).particles) {
+                for (Cell cell : grid) {
+                    for (Particle neighborParticle : cell.particles) {
+                        if (particle.id != neighborParticle.id) {
+                            double dx = particle.x - neighborParticle.x;
+                            double dy = particle.y - neighborParticle.y;
+                            double distance = Math.sqrt(dx * dx + dy * dy);
+                            double combinedRadius = particle.radius + neighborParticle.radius;
+
+                            // Distance is calculated and then subtracted the combinedRadius
+                            if (distance - combinedRadius <= rc) {
+                                neighborMap.computeIfAbsent(particle, k -> new TreeSet<>()).add(neighborParticle);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public void writeOutputToFile(long elapsedTime, String title) {
         try (FileWriter writer = new FileWriter("output.txt")) {
+            writer.write( title + " Method" + "\n");
             // Escribir M y N en el archivo
             writer.write("M: " + M + "\n");
             writer.write("N: " + N + "\n");
+            // Escribir el tiempo de ejecución en el archivo
+            writer.write("Tiempo de ejecución: " + elapsedTime + " ms\n");
 
             // Escribir los vecinos de cada partícula en el archivo
-            for (Map.Entry<Particle, List<Particle>> entry : neighborMap.entrySet()) {
+            for (Map.Entry<Particle, Set<Particle>> entry : neighborMap.entrySet()) {
                 Particle particle = entry.getKey();
-                List<Particle> neighbors = entry.getValue();
+                Set<Particle> neighbors = entry.getValue();
 
                 // Escribir el ID de la partícula y sus vecinos en el formato deseado
-                writer.write("Particula " + particle.id + ": Vecinos: ");
+                writer.write(particle.id + ": ");
+                for (Particle neighbor : neighbors) {
+                    writer.write(neighbor.id + " ");
+                }
+                writer.write("\n");
+            }
+            System.out.println("Resultados escritos en output.txt");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void appendOutputToFile(long elapsedTime, String title) {
+        try (FileWriter fileWriter = new FileWriter("output.txt", true);
+             BufferedWriter writer = new BufferedWriter(fileWriter)) {
+
+            writer.write("\n" + title + " Method" + "\n");
+            // Escribir M y N en el archivo
+            writer.write("M: " + M + "\n");
+            writer.write("N: " + N + "\n");
+            // Escribir el tiempo de ejecución en el archivo
+            writer.write("Tiempo de ejecución: " + elapsedTime + " ms\n");
+
+            // Escribir los vecinos de cada partícula en el archivo
+            for (Map.Entry<Particle, Set<Particle>> entry : neighborMap.entrySet()) {
+                Particle particle = entry.getKey();
+                Set<Particle> neighbors = entry.getValue();
+
+                // Escribir el ID de la partícula y sus vecinos en el formato deseado
+                writer.write(particle.id + ": ");
                 for (Particle neighbor : neighbors) {
                     writer.write(neighbor.id + " ");
                 }
                 writer.write("\n");
             }
 
-            // Escribir el tiempo de ejecución en el archivo
-            writer.write("Tiempo de ejecución: " + elapsedTime + " ms\n");
+            writer.newLine(); // Agregar una línea en blanco entre los resultados
+            System.out.println("Resultados agregados en output.txt");
 
-            System.out.println("Resultados escritos en output.txt");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -194,7 +249,7 @@ public class CellIndexMethod {
         double L = 0;
         double rc = 0;
         List<Double> radii = new ArrayList<>();
-        List<List<Particle>> particlesByTimestamp = new ArrayList<>();
+        List<Set<Particle>> particlesByTimestamp = new ArrayList<>();
 
         try {
             // Read static file
@@ -216,7 +271,7 @@ public class CellIndexMethod {
 
             while ((line = dynamicReader.readLine()) != null) {
                 double time = Double.parseDouble(line);
-                List<Particle> particles = new ArrayList<>();
+                Set<Particle> particles = new TreeSet<>();
 
                 for (int i = 0; i < N; i++) {
                     line = dynamicReader.readLine();
@@ -235,7 +290,7 @@ public class CellIndexMethod {
         }
 
         // Call CellIndexMethod with first Timestamp
-        List<Particle> particlesAtTimestamp0 = particlesByTimestamp.get(0);
+        Set<Particle> particlesAtTimestamp0 = particlesByTimestamp.get(0);
         CellIndexMethod cim = new CellIndexMethod(L, rc, particlesAtTimestamp0, true);
 
         long startTime = System.currentTimeMillis();
@@ -244,6 +299,15 @@ public class CellIndexMethod {
         long elapsedTime = endTime - startTime;
 
         // Write output.txt
-        cim.writeOutputToFile(elapsedTime);
+        cim.writeOutputToFile(elapsedTime, "Normal");
+
+        // Call CellIndexMethodNaive with first Timestamp
+        startTime = System.currentTimeMillis();
+        cim.calculateNeighborParticlesNaive();
+        endTime = System.currentTimeMillis();
+        elapsedTime = endTime - startTime;
+
+        // Write output.txt
+        cim.appendOutputToFile(elapsedTime, "Naive");
     }
 }

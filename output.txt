@@ -1,52 +1,69 @@
+Normal Method
 M: 5
 N: 30
-Particula 14: Vecinos: 5 0 7 9 
-Particula 19: Vecinos: 3 10 
-Particula 13: Vecinos: 2 21 20 
-Particula 23: Vecinos: 28 
-Particula 13: Vecinos: 2 21 
-Particula 21: Vecinos: 2 13 
-Particula 12: Vecinos: 6 24 15 
-Particula 21: Vecinos: 2 13 20 
-Particula 17: Vecinos: 3 29 
-Particula 6: Vecinos: 1 12 24 15 
-Particula 20: Vecinos: 2 13 21 
-Particula 18: Vecinos: 25 
-Particula 24: Vecinos: 6 12 
-Particula 8: Vecinos: 5 
-Particula 10: Vecinos: 4 19 
-Particula 2: Vecinos: 13 21 
-Particula 24: Vecinos: 6 12 
-Particula 16: Vecinos: 22 1 
-Particula 17: Vecinos: 3 29 
-Particula 6: Vecinos: 16 12 24 
-Particula 13: Vecinos: 2 21 
-Particula 21: Vecinos: 2 13 
-Particula 13: Vecinos: 2 21 20 
-Particula 26: Vecinos: 27 
-Particula 1: Vecinos: 6 16 
-Particula 4: Vecinos: 10 
-Particula 11: Vecinos: 9 15 
-Particula 27: Vecinos: 26 
-Particula 16: Vecinos: 22 6 
-Particula 5: Vecinos: 8 14 
-Particula 29: Vecinos: 3 17 
-Particula 12: Vecinos: 6 24 
-Particula 2: Vecinos: 13 21 20 
-Particula 3: Vecinos: 19 17 29 
-Particula 2: Vecinos: 13 21 
-Particula 2: Vecinos: 13 21 20 
-Particula 0: Vecinos: 7 9 14 
-Particula 15: Vecinos: 11 6 12 
-Particula 7: Vecinos: 0 9 14 
-Particula 19: Vecinos: 3 
-Particula 28: Vecinos: 23 
-Particula 22: Vecinos: 16 
-Particula 9: Vecinos: 0 7 14 11 
-Particula 22: Vecinos: 16 
-Particula 25: Vecinos: 18 
-Particula 20: Vecinos: 2 13 21 
-Particula 3: Vecinos: 19 17 29 
-Particula 29: Vecinos: 3 17 
-Particula 21: Vecinos: 2 13 20 
 Tiempo de ejecución: 1 ms
+0: 7 9 14 
+1: 6 16 
+2: 13 20 21 
+3: 17 19 29 
+4: 10 
+5: 8 14 
+6: 1 12 15 16 24 
+7: 0 9 14 
+8: 5 
+9: 0 7 11 14 
+10: 4 19 
+11: 9 15 
+12: 6 15 24 
+13: 2 20 21 
+14: 0 5 7 9 
+15: 6 11 12 
+16: 1 6 22 
+17: 3 29 
+18: 25 
+19: 3 10 
+20: 2 13 21 
+21: 2 13 20 
+22: 16 
+23: 28 
+24: 6 12 
+25: 18 
+26: 27 
+27: 26 
+28: 23 
+29: 3 17 
+
+Naive Method
+M: 5
+N: 30
+Tiempo de ejecución: 1 ms
+0: 7 9 14 
+1: 6 16 
+2: 13 20 21 
+3: 17 19 29 
+5: 8 14 
+6: 1 12 15 16 
+7: 0 9 14 
+8: 5 
+9: 0 7 11 14 
+10: 19 20 
+11: 9 15 
+12: 6 15 24 
+13: 2 20 21 
+14: 0 5 7 9 
+15: 6 11 12 
+16: 1 6 22 
+17: 3 29 
+18: 22 25 
+19: 3 10 
+20: 2 10 13 21 
+21: 2 13 20 
+22: 16 18 
+23: 28 
+24: 12 
+25: 18 
+26: 27 
+27: 26 
+28: 23 
+29: 3 17 
+
