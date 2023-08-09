@@ -124,9 +124,6 @@ public class CellIndexMethod {
                 mirrorMap.put(newParticle, particle);
             }
         }
-
-        // Visualization class, when instantiated, draw the grid (not more needed to be done)
-        ParticleVisualization visualization = new ParticleVisualization(grid, L, M, rc, periodicOutline);
     }
 
     public void calculateNeighborParticles() {
@@ -184,6 +181,9 @@ public class CellIndexMethod {
                 }
             }
         }
+
+        // Visualization class, when instantiated, draw the grid (not more needed to be done)
+        ParticleVisualization visualization = new ParticleVisualization(grid, neighborMap, L, M, rc, periodicOutline);
     }
 
     public void calculateNeighborParticlesNaive() {
