@@ -1,3 +1,4 @@
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -8,14 +9,22 @@ import java.io.IOException;
 
 public class CellIndexMethod {
     double L; // Grid is L in height and width
+    int N; // Number of particles
     int M; // Grid is MxM
     double rc; // Distance from the circumference particle to be considered a neighbor
     double cellSize; // Grid is M*cellSize = L in height and width, cellSize is divisor of L
     int numParticles;
     List<Particle> particles;
     List<Cell> grid;
+    Map<Particle, List<Particle>> neighborMap;
 
-    private double[] calculateCellSize(double L, double rc, double maxRadius) {
+    private double[] calculateCellSize(double L, double rc, List<Particle> particles) {
+        double maxRadius = 0.0;
+        for (Particle particle : particles) {
+            if (particle.radius > maxRadius) {
+                maxRadius = particle.radius;
+            }
+        }
         int i = 2;
         double epsilon = 1e-6;
         while(true) {
@@ -33,24 +42,17 @@ public class CellIndexMethod {
 
     public CellIndexMethod(double L, double rc, List<Particle> particles, boolean periodicOutline) {
         this.L = L;
+        this.N = particles.size();
         this.rc = rc;
         this.particles = particles;
-        this.numParticles = particles.size();
-
-        double maxRadius = 0.0;
-        for (Particle particle : particles) {
-            if (particle.radius > maxRadius) {
-                maxRadius = particle.radius;
-            }
-        }
 
         //Calculate best M option
-        double[] data = calculateCellSize(L, rc, maxRadius);
+        double[] data = calculateCellSize(L, rc, particles);
         this.M = (int) data[0];
         this.cellSize = data[1];
 
-        grid = new ArrayList<>();
         // Initialize grid and cells
+        grid = new ArrayList<>();
         for (int i = 0; i < M * M; i++) {
             grid.add(new Cell());
         }
@@ -63,6 +65,7 @@ public class CellIndexMethod {
             grid.get(cellIndex).addParticle(particle);
         }
 
+        // Mirror cells if periodicOutline is true
         if (periodicOutline) {
             //Top
             for (int i = 0; i < M; i++) {
@@ -72,7 +75,7 @@ public class CellIndexMethod {
                     double newY = 0 - (L - particle.y);
                     Particle newParticle = new Particle(particle.id, newX, newY, particle.radius);
                     grid.get(i).particles.add(newParticle);
-                    particles.add(newParticle);
+                    this.particles.add(newParticle);
                 }
             }
 
@@ -83,7 +86,7 @@ public class CellIndexMethod {
                 double newY = 0 - (L - particle.y);
                 Particle newParticle = new Particle(particle.id, newX, newY, particle.radius);
                 grid.get(M).particles.add(newParticle);
-                particles.add(newParticle);
+                this.particles.add(newParticle);
             }
 
             //Right
@@ -94,7 +97,7 @@ public class CellIndexMethod {
                     double newY = particle.y;
                     Particle newParticle = new Particle(particle.id, newX, newY, particle.radius);
                     grid.get(i+3).particles.add(newParticle);
-                    particles.add(newParticle);
+                    this.particles.add(newParticle);
                 }
             }
 
@@ -110,7 +113,7 @@ public class CellIndexMethod {
                 double newY = L + particle.y;
                 Particle newParticle = new Particle(particle.id, newX, newY, particle.radius);
                 grid.get(grid.size()-1).particles.add(newParticle);
-                particles.add(newParticle);
+                this.particles.add(newParticle);
             }
         }
 
@@ -118,8 +121,8 @@ public class CellIndexMethod {
         ParticleVisualization visualization = new ParticleVisualization(grid, L, M, rc, periodicOutline);
     }
 
-    public Map<Particle, List<Particle>> getNeighborParticles() {
-        Map<Particle, List<Particle>> neighborsMap = new HashMap<>();
+    public void calculateNeighborParticles() {
+        neighborMap = new HashMap<>();
 
         for (int i = 0; i < grid.size(); i++) {
 
@@ -127,7 +130,7 @@ public class CellIndexMethod {
             for (Particle particle : grid.get(i).particles) {
                 for (Particle particle2 : grid.get(i).particles) {
                     if (particle.id != particle2.id) {
-                        neighborsMap.computeIfAbsent(particle, k -> new ArrayList<>()).add(particle2);
+                        neighborMap.computeIfAbsent(particle, k -> new ArrayList<>()).add(particle2);
                     }
                 }
             }
@@ -147,8 +150,8 @@ public class CellIndexMethod {
 
                             // Distance is calculated and then subtracted the combinedRadius
                             if (distance - combinedRadius <= rc) {
-                                neighborsMap.computeIfAbsent(particle, k -> new ArrayList<>()).add(neighborParticle);
-                                neighborsMap.computeIfAbsent(neighborParticle, k -> new ArrayList<>()).add(particle);
+                                neighborMap.computeIfAbsent(particle, k -> new ArrayList<>()).add(neighborParticle);
+                                neighborMap.computeIfAbsent(neighborParticle, k -> new ArrayList<>()).add(particle);
                             }
                         }
                     }
@@ -156,7 +159,34 @@ public class CellIndexMethod {
                 }
             }
         }
-        return neighborsMap;
+    }
+
+    public void writeOutputToFile(long elapsedTime) {
+        try (FileWriter writer = new FileWriter("output.txt")) {
+            // Escribir M y N en el archivo
+            writer.write("M: " + M + "\n");
+            writer.write("N: " + N + "\n");
+
+            // Escribir los vecinos de cada partícula en el archivo
+            for (Map.Entry<Particle, List<Particle>> entry : neighborMap.entrySet()) {
+                Particle particle = entry.getKey();
+                List<Particle> neighbors = entry.getValue();
+
+                // Escribir el ID de la partícula y sus vecinos en el formato deseado
+                writer.write("Particula " + particle.id + ": Vecinos: ");
+                for (Particle neighbor : neighbors) {
+                    writer.write(neighbor.id + " ");
+                }
+                writer.write("\n");
+            }
+
+            // Escribir el tiempo de ejecución en el archivo
+            writer.write("Tiempo de ejecución: " + elapsedTime + " ms\n");
+
+            System.out.println("Resultados escritos en output.txt");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static void main(String[] args) {
@@ -164,7 +194,7 @@ public class CellIndexMethod {
         double L = 0;
         double rc = 0;
         List<Double> radii = new ArrayList<>();
-        List<List<Particle>> particlesByTimestep = new ArrayList<>();
+        List<List<Particle>> particlesByTimestamp = new ArrayList<>();
 
         try {
             // Read static file
@@ -196,7 +226,7 @@ public class CellIndexMethod {
                     particles.add(new Particle(i, x, y, radii.get(i)));
                 }
 
-                particlesByTimestep.add(particles);
+                particlesByTimestamp.add(particles);
                 timestampCount++;
             }
             dynamicReader.close();
@@ -205,18 +235,15 @@ public class CellIndexMethod {
         }
 
         // Call CellIndexMethod with first Timestamp
-        List<Particle> particlesAtTimestamp0 = particlesByTimestep.get(0);
+        List<Particle> particlesAtTimestamp0 = particlesByTimestamp.get(0);
         CellIndexMethod cim = new CellIndexMethod(L, rc, particlesAtTimestamp0, true);
-        Map<Particle, List<Particle>> neighborParticlesMap = cim.getNeighborParticles();
 
-        // Print neighbors
-        System.out.println("Partículas vecinas:");
-        for (Particle particle : neighborParticlesMap.keySet()) {
-            List<Particle> neighbors = neighborParticlesMap.get(particle);
-            System.out.println("Partícula " + particle.id + ": ");
-            for (Particle neighbor : neighbors) {
-                System.out.println("Vecino " + neighbor.id);
-            }
-        }
+        long startTime = System.currentTimeMillis();
+        cim.calculateNeighborParticles();
+        long endTime = System.currentTimeMillis();
+        long elapsedTime = endTime - startTime;
+
+        // Write output.txt
+        cim.writeOutputToFile(elapsedTime);
     }
 }
