@@ -135,11 +135,13 @@ public class ParticleVisualization extends JPanel {
 
         if (selectedParticle != null && !selectedParticle.id.contains("E")) {
             g.setColor(Color.CYAN);
-            for (Particle particle : neighborMap.get(selectedParticle)) {
-                if (!particle.id.contains("E")) {
-                    int x = (int) (particle.x - particle.radius);
-                    int y = (int) (particle.y - particle.radius);
-                    g.fillOval(x, y + offsetY, (int) particle.radius * 2, (int) particle.radius * 2);
+            if(neighborMap.containsKey(selectedParticle)) {
+                for (Particle particle : neighborMap.get(selectedParticle)) {
+                    if (!particle.id.contains("E")) {
+                        int x = (int) (particle.x - particle.radius);
+                        int y = (int) (particle.y - particle.radius);
+                        g.fillOval(x, y + offsetY, (int) particle.radius * 2, (int) particle.radius * 2);
+                    }
                 }
             }
 
