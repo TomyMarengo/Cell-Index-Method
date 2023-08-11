@@ -19,10 +19,10 @@ public class CellIndexMethod {
     Map<Particle, Particle> mirrorMap;
 
     private double[] calculateCellSize(double L, double rc, Set<Particle> particles) {
-        double minRadius = particles.stream().findFirst().get().radius;
+        double maxRadius = 0.0;
         for (Particle particle : particles) {
-            if (particle.radius < minRadius) {
-                minRadius = particle.radius;
+            if (particle.radius > maxRadius) {
+                maxRadius = particle.radius;
             }
         }
         
@@ -30,7 +30,7 @@ public class CellIndexMethod {
         double epsilon = 1e-6;
         while(true) {
             M = (int) (L/i);
-            if (L % i < epsilon && M < L/(rc+minRadius*2)) {
+            if (L % i < epsilon && M <= L/(rc+maxRadius*2) && i > rc+maxRadius) {
                 break;
             }
             else {
@@ -131,24 +131,13 @@ public class CellIndexMethod {
 
         for (int i = 0; i < grid.size(); i++) {
 
-            // Add particles within same cell as neighbors
-            for (Particle particle : grid.get(i).particles) {
-                if(!particle.id.contains("E")) {
-                    for (Particle particle2 : grid.get(i).particles) {
-                        if (!particle.id.equals(particle2.id)) {
-                            neighborMap.computeIfAbsent(particle, k -> new TreeSet<>()).add(particle2);
-                        }
-                    }
-                }
-            }
-
             // Neighbors cells to be calculated: top, top right, right, bottom right
             int[] offsets;
             if(periodicOutline) {
-                offsets = new int[]{i - M - 1, i - M + 1 - 1, i + 1, i + M + 1 + 1};
+                offsets = new int[]{i, i - M - 1, i - M + 1 - 1, i + 1, i + M + 1 + 1};
             }
             else {
-                offsets = new int[]{i - M, i - M + 1, i + 1, i + M + 1};
+                offsets = new int[]{i, i - M, i - M + 1, i + 1, i + M + 1};
             }
 
             // Calculate distance between neighbor particles in neighbor cells
@@ -156,14 +145,8 @@ public class CellIndexMethod {
                 for (int offset : offsets) {
                     if (offset >= 0 && offset < grid.size()) {
                         for (Particle neighborParticle : grid.get(offset).particles) {
-                            double dx = particle.x - neighborParticle.x;
-                            double dy = particle.y - neighborParticle.y;
-                            double distance = Math.sqrt(dx * dx + dy * dy);
-                            double combinedRadius = particle.radius + neighborParticle.radius;
-                            // Distance is calculated and then subtracted the combinedRadius
-                            if (distance - combinedRadius <= rc) {
-                                addToNeighborMap(particle, neighborParticle);
-                            }
+                            calculateDistance(particle, neighborParticle);
+
                         }
                     }
 
@@ -198,18 +181,22 @@ public class CellIndexMethod {
         for (Particle particle : particles) {
             if(!particle.id.contains("E")) {
                 for (Particle neighborParticle : particles) {
-                    if (!particle.id.equals(neighborParticle.id)) {
-                        double dx = particle.x - neighborParticle.x;
-                        double dy = particle.y - neighborParticle.y;
-                        double distance = Math.sqrt(dx * dx + dy * dy);
-                        double combinedRadius = particle.radius + neighborParticle.radius;
-
-                        // Distance is calculated and then subtracted the combinedRadius
-                        if (distance - combinedRadius <= rc) {
-                            addToNeighborMap(particle, neighborParticle);
-                        }
-                    }
+                    calculateDistance(particle, neighborParticle);
                 }
+            }
+        }
+    }
+
+    private void calculateDistance(Particle particle, Particle neighborParticle) {
+        if (!particle.id.equals(neighborParticle.id)) {
+            double dx = particle.x - neighborParticle.x;
+            double dy = particle.y - neighborParticle.y;
+            double distance = Math.sqrt(dx * dx + dy * dy);
+            double combinedRadius = particle.radius + neighborParticle.radius;
+
+            // Distance is calculated and then subtracted the combinedRadius
+            if (distance - combinedRadius <= rc) {
+                addToNeighborMap(particle, neighborParticle);
             }
         }
     }
